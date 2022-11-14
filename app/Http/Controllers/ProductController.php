@@ -2,83 +2,107 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        // Get All products
+        // get All Products From Database
+        $products = Product::all();
+        return response()->json($products);
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        //POST(request)
+        // Store all information of Products to Database
+        //in_array()
+
+        $product = new Product();
+
+        // image upload
+        if ($request->hasFile('photo')) {
+
+            $allowedfileExtension = ['pdf', 'jpg', 'png'];
+            $file = $request->file('photo');
+            $extenstion = $file->getClientOriginalExtension();
+            $check = in_array($extenstion, $allowedfileExtension);
+
+            if ($check) {
+                $name = time() . $file->getClientOriginalName();
+                $file->move('images', $name);
+                $product->photo = $name;
+            }
+        }
+
+        // text data
+        $product->title = $request->input('title');
+        $product->price = $request->input('price');
+        $product->description = $request->input('description');
+
+        $product->save();
+        return response()->json($product);
+
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        //
+        // GET(id)
+        // show each product by its ID from database
+        $product = Product::find($id);
+        return response()->json($product);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
-        //
+        // PUT(id)
+        // Update Info by Id
+
+        $this->validate($request, [
+            'title' => 'required',
+            'description' => 'required',
+            'photo' => 'required',
+            'price' => 'required',
+        ]);
+
+        $product = Product::find($id);
+
+        // image upload
+        if ($request->hasFile('photo')) {
+
+            $allowedfileExtension = ['pdf', 'jpg', 'png'];
+            $file = $request->file('photo');
+            $extenstion = $file->getClientOriginalExtension();
+            $check = in_array($extenstion, $allowedfileExtension);
+
+            if ($check) {
+                $name = time() . $file->getClientOriginalName();
+                $file->move('images', $name);
+                $product->photo = $name;
+            }
+        }
+        // text Data
+        $product->title = $request->input('title');
+        $product->price = $request->input('price');
+        $product->description = $request->input('description');
+
+        $product->save();
+
+        return response()->json($product);
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        //
+        // DELETE(id)
+        // Delete by Id
+        $product = Product::find($id);
+        $product->delete();
+        return response()->json('Product Deleted Successfully');
+
     }
 }
